@@ -1,4 +1,5 @@
 import time
+from turtle import pos
 import streamlit as st
 
 from PIL import Image
@@ -26,6 +27,28 @@ def get_request_queue():
     return REQUEST_QUEUE
 
 
+def find_index_by_request_id(queue, request_id):
+    """Method that finds user's position in the queue.
+
+    Args:
+        queue (Queue()): Queue of users' requests.
+        request_id (uuid4()): Unique key of user request.
+
+    Returns:
+        int: User's position in the queue.
+    """
+    for i, item in enumerate(queue.queue):
+        if item["request_id"] == request_id:
+            return i
+    return -1
+
+
+def calc_eta(position_in_queue):
+    eta = position_in_queue * 60 + 60
+    
+    return eta
+
+
 def periodic_result_fetch(request_queue, request_id):
     """Method that tries to get the result of
     image-editing from request_queue each 1 second.
@@ -38,19 +61,31 @@ def periodic_result_fetch(request_queue, request_id):
         dict: Entry of queue with uuid4 key, time of creation,
         request params and image as the result.
     """
-    textholder = st.empty()
-    textholder.write(f"Current queue size: {request_queue.queue.qsize()}")
+    position_in_queue = find_index_by_request_id(request_queue.queue, request_id) + 1
+    eta = calc_eta(position_in_queue)
+    
+    textholder_queue_pos = st.empty()
+    textholder_queue_pos.write(f"You are now in {position_in_queue} position in queue.")
+    
+    textholder_eta = st.empty()
+    textholder_eta.write(f"ETA: {eta} seconds.")
     
     while True:
         time.sleep(1)
         done_request = request_queue.fetch_result(request_id)
         if done_request is not None:
-            textholder.write("Done!")
+            textholder_queue_pos.write("Done!")
             return done_request
-          
-        textholder.write(f"Текущий размер очереди: {request_queue.queue.qsize()}")
-        if request_queue.queue.qsize() == 0:
-            textholder.write("Your request is under processing...")
+        
+        position_in_queue = find_index_by_request_id(request_queue.queue, request_id) + 1
+        eta = calc_eta(position_in_queue)
+        
+        textholder_queue_pos.write(f"You are now in {position_in_queue} position in queue")
+        
+        textholder_eta.write(f"ETA: {eta} seconds.")
+        
+        if position_in_queue == 0:
+            textholder_queue_pos.write("Your request is under processing...")
 
 
 def main():
@@ -80,8 +115,7 @@ def main():
             # Добавление в очередь запросов
             req_id, eta_sec = request_queue.add_to_queue(selections, data)
 
-            st.write(f"Добавлен запрос с id: {req_id}")
-            st.write(f"Ожидаемое время ожидания: {eta_sec} секунд")
+            st.write(f"Added request with id: {req_id}")
 
             result = periodic_result_fetch(request_queue, req_id)
             st.image(result["result"], caption="Edited image", use_column_width=True)
