@@ -36,7 +36,7 @@ class RequestQueue:
     def edit_image(self, image):
         print("started editing image")
         edited_image = model_inference.inference_edit_image(image)
-        time.sleep(20)
+        time.sleep(5)
         
         return edited_image
     

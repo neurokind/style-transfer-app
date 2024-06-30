@@ -6,6 +6,10 @@ from queue_handling import RequestQueue
 import app_tests
 
 
+# Глобальный экземпляр RequetsQueue
+REQUEST_QUEUE = None
+
+
 @st.cache_resource
 def get_request_queue():
     """Function for generating global REQUEST_QUEUE
