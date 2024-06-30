@@ -17,6 +17,8 @@ class RequestQueue:
         # Запуск потока обработки запросов в очереди
         self.process_requests_thread = threading.Thread(target=self._process_requests, daemon=True)
         self.process_requests_thread.start()
+        
+        print("created queue instance")
     
       
     # Функция для обработки запросов в очереди
@@ -32,8 +34,9 @@ class RequestQueue:
                 
     # Функция для запуска обработки изображения
     def edit_image(self, image):
+        print("started editing image")
         edited_image = model_inference.inference_edit_image(image)
-        time.sleep(5)
+        time.sleep(20)
         
         return edited_image
     
