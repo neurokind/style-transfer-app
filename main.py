@@ -75,6 +75,8 @@ def periodic_result_fetch(request_queue, request_id):
         done_request = request_queue.fetch_result(request_id)
         if done_request is not None:
             textholder_queue_pos.write("Done!")
+            textholder_eta.empty()
+            
             return done_request
         
         position_in_queue = find_index_by_request_id(request_queue.queue, request_id) + 1
