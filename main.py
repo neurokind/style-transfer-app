@@ -1,8 +1,7 @@
 import time
-from turtle import pos
 import streamlit as st
+import datetime
 
-from PIL import Image
 from queue_handling import RequestQueue
 import app_tests
 
@@ -43,13 +42,14 @@ def find_index_by_request_id(queue, request_id):
     return -1
 
 
-def calc_eta(position_in_queue):
-    eta = position_in_queue * 60 + 60
+def calc_eta(position_in_queue, epochs):
+    eta = position_in_queue * 120 + epochs * 5 + 50
+    eta = str(datetime.timedelta(seconds=eta))
     
     return eta
 
 
-def periodic_result_fetch(request_queue, request_id):
+def periodic_result_fetch(request_queue, request_id, epochs):
     """Method that tries to get the result of
     image-editing from request_queue each 1 second.
 
@@ -62,13 +62,13 @@ def periodic_result_fetch(request_queue, request_id):
         request params and image as the result.
     """
     position_in_queue = find_index_by_request_id(request_queue.queue, request_id) + 1
-    eta = calc_eta(position_in_queue)
+    eta = calc_eta(position_in_queue, epochs)
     
     textholder_queue_pos = st.empty()
     textholder_queue_pos.write(f"You are now in {position_in_queue} position in queue.")
     
     textholder_eta = st.empty()
-    textholder_eta.write(f"ETA: {eta} seconds.")
+    textholder_eta.write(f"ETA: {eta}")
     
     while True:
         time.sleep(1)
@@ -80,14 +80,14 @@ def periodic_result_fetch(request_queue, request_id):
             return done_request
         
         position_in_queue = find_index_by_request_id(request_queue.queue, request_id) + 1
-        eta = calc_eta(position_in_queue)
+        eta = calc_eta(position_in_queue, epochs)
         
-        textholder_queue_pos.write(f"You are now in {position_in_queue} position in queue")
-        
-        textholder_eta.write(f"ETA: {eta} seconds.")
-        
-        if position_in_queue == 0:
+        if position_in_queue != 0:
+            textholder_queue_pos.write(f"You are now in {position_in_queue} position in queue")
+            textholder_eta.write(f"ETA: {eta} seconds.")
+        else:
             textholder_queue_pos.write("Your request is under processing...")
+            textholder_eta.write(f"ETA: {eta} seconds.")
 
 
 def main():
@@ -96,30 +96,29 @@ def main():
     # Получение или создание экземпляра очереди запросов
     request_queue = get_request_queue()
 
-    # Multi select
-    selections = st.multiselect("Photo style:", ["Kuindzhi", "Kandinsky", "Malevich"])
-
     # Number input
-    choice = st.number_input("Choose the number of epochs", 0, 50)
+    epochs = st.number_input("Choose the number of epochs", 0, 50)
 
     # File upload
-    data = st.file_uploader("Share png file", type=['png'])
+    data_content = st.file_uploader("Load content image", type=['jpg'])
+    data_style = st.file_uploader("Load style image", type=['jpg'])
 
-    if data is not None:
+    if data_content is not None and data_style is not None:
         # User image show
-        st.image(data, caption="Your image", use_column_width=True)
+        st.image(data_content, caption="Content image", use_column_width=True)
+        st.image(data_style, caption="Style image", use_column_width=True)
 
 
         if st.button("Process image"):
             # Request queue test (disabled)
-            # app_tests.queue_test(request_queue.add_to_queue, selections, data)
+            #app_tests.queue_test(request_queue.add_to_queue, data_style, data_content, epochs)
             
             # Добавление в очередь запросов
-            req_id, eta_sec = request_queue.add_to_queue(selections, data)
+            req_id = request_queue.add_to_queue(data_content, data_style, epochs)
 
             st.write(f"Added request with id: {req_id}")
 
-            result = periodic_result_fetch(request_queue, req_id)
+            result = periodic_result_fetch(request_queue, req_id, epochs)
             st.image(result["result"], caption="Edited image", use_column_width=True)
 
 

@@ -3,8 +3,6 @@ import torch
 import torch.optim as optim
 from torchvision import transforms, models
 from PIL import Image
-import matplotlib.pyplot as plt
-import copy
 
 
 """Methods for loading and normalising images and converting these back:"""
@@ -62,9 +60,14 @@ def gram_matrix(tensor):
   return gram
         
 
-def edit_image(content_image, style_image, epochs):
+def inference_edit_image(content_image, style_image, epochs):
     # Set device here
     device = torch.device("cpu")
+    
+    # Prep (rescale, normalize) images
+    content_image = load_image(content_image)
+    style_image = load_image(style_image)
+    
     """Loading the model vgg19 and determining the layers to calculate the losses:"""
 
     vgg = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1).features
@@ -125,8 +128,9 @@ def edit_image(content_image, style_image, epochs):
 
         if  i % 5 == 0:
             print('Total loss: ', total_loss.item())
-            
-    return im_convert(target)
+    
+    target = Image.fromarray((im_convert(target) * 255).astype('uint8'))
+    return target
     
 
 if __name__ == "__main__":
@@ -139,5 +143,5 @@ if __name__ == "__main__":
     style_image = load_image(style_image_path)
 
     # Save the result
-    target = edit_image(content_image, style_image, 3)
-    Image.fromarray((target * 255).astype('uint8')).save("img/result.jpg")
+    target = inference_edit_image(content_image, style_image, 3)
+    target.save("img/result.jpg")
