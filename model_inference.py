@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from re import X
 import torch
 import torch.optim as optim
 from torchvision import transforms, models
@@ -7,16 +8,36 @@ from PIL import Image
 
 """Methods for loading and normalising images and converting these back:"""
 
-def load_image(img_path, max_size=400):
+def load_image(img_path, vert_max_size=480, horiz_max_size=640):
+    """Method normalizes and rescales input image.
+
+    Args:
+        img_path (file-like object): may be file path, loaded file or loaded image.
+        vert_max_size (int, optional): Max length of vertical dimension of image. Defaults to 480.
+        horiz_max_size (int, optional): Max length of horizontal dimension of image. Defaults to 640.
+
+    Returns:
+        torch.tensor: tensor of normalized image.
+    """
     image = Image.open(img_path).convert('RGB')
 
-    if max(image.size) > max_size:
-        size = max_size
+    width, height = image.size
+    
+    if height > width:
+        image.rotate(90)
+    
+    if width > horiz_max_size:
+        horiz_size = horiz_max_size
     else:
-        size = max(image.size)
+        horiz_size = max(image.size)
+        
+    if height > vert_max_size:
+        vert_size = vert_max_size
+    else:
+        vert_size = min(image.size)
 
     in_transform = transforms.Compose([
-        transforms.Resize((size, size)),
+        transforms.Resize((vert_size, horiz_size)),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406),
                              (0.229, 0.224, 0.225))])
@@ -26,6 +47,15 @@ def load_image(img_path, max_size=400):
 
 
 def im_convert(tensor):
+    """Denorms and converts torch.tensor image to numpy.ndarray.
+
+    Args:
+        tensor (torch.tensor): normalized torch.tensor image.
+
+    Returns:
+        numpy.ndarray: ndarray image. May be shown by matplotlib.
+        Clipped by (0, 1).
+    """
     image = tensor.to("cpu").clone().detach()
     image = image.numpy().squeeze()
     image = image.transpose(1, 2, 0)
@@ -61,6 +91,16 @@ def gram_matrix(tensor):
         
 
 def inference_edit_image(content_image, style_image, epochs):
+    """Application of deep learning model. Style-transfer uses VGG19 as a backbone.
+
+    Args:
+        content_image (torch.tensor): normalized image tensor to transfer a style to.
+        style_image (torch.tensor): normalized image tensor to transfer a style from.
+        epochs (int): count of epochs to train the model with.
+
+    Returns:
+        image: target image with a style applied.
+    """
     # Set device here
     device = torch.device("cpu")
     

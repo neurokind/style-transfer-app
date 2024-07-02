@@ -6,7 +6,7 @@ from queue_handling import RequestQueue
 import app_tests
 
 
-# Глобальный экземпляр RequetsQueue
+# Global instance of RequetsQueue (single for all users)
 REQUEST_QUEUE = None
 
 
@@ -43,6 +43,15 @@ def find_index_by_request_id(queue, request_id):
 
 
 def calc_eta(position_in_queue, epochs):
+    """Calculates ETA time from position in queue and number of requested epochs.
+
+    Args:
+        position_in_queue (int): index of user's request in queue.
+        epochs (int): number of epochs of model training.
+
+    Returns:
+        str: HH:MM:SS format ETA time
+    """
     eta = position_in_queue * 120 + epochs * 5 + 50
     eta = str(datetime.timedelta(seconds=eta))
     
@@ -84,20 +93,20 @@ def periodic_result_fetch(request_queue, request_id, epochs):
         
         if position_in_queue != 0:
             textholder_queue_pos.write(f"You are now in {position_in_queue} position in queue")
-            textholder_eta.write(f"ETA: {eta} seconds.")
+            textholder_eta.write(f"ETA: {eta}")
         else:
             textholder_queue_pos.write("Your request is under processing...")
-            textholder_eta.write(f"ETA: {eta} seconds.")
+            textholder_eta.write(f"ETA: {eta}")
 
 
 def main():
     """Main app function. Creates the streamlit UI and delegates the logic.
     """
-    # Получение или создание экземпляра очереди запросов
+    # Get or create (single for all users) instance of requests queue
     request_queue = get_request_queue()
 
     # Number input
-    epochs = st.number_input("Choose the number of epochs", 0, 50)
+    epochs = st.number_input("Choose the number of epochs", 0, 200)
 
     # File upload
     data_content = st.file_uploader("Load content image", type=['jpg'])
@@ -113,7 +122,7 @@ def main():
             # Request queue test (disabled)
             #app_tests.queue_test(request_queue.add_to_queue, data_style, data_content, epochs)
             
-            # Добавление в очередь запросов
+            # Add request to queue. Get back request index
             req_id = request_queue.add_to_queue(data_content, data_style, epochs)
 
             st.write(f"Added request with id: {req_id}")
