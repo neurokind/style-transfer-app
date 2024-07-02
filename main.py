@@ -117,17 +117,17 @@ def main():
         st.image(data_content, caption="Content image", use_column_width=True)
         st.image(data_style, caption="Style image", use_column_width=True)
 
-
         if st.button("Process image"):
             # Request queue test (disabled)
             #app_tests.queue_test(request_queue.add_to_queue, data_style, data_content, epochs)
-            
+                
             # Add request to queue. Get back request index
             req_id = request_queue.add_to_queue(data_content, data_style, epochs)
 
             st.write(f"Added request with id: {req_id}")
 
             result = periodic_result_fetch(request_queue, req_id, epochs)
+        
             st.image(result["result"], caption="Edited image", use_column_width=True)
 
 
