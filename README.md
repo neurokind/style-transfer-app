@@ -53,6 +53,5 @@ Run from docker container:
 
 - Python
 - Streamlit
-- Torch
+- Machine learning (torch library)
 - Docker
-- Machine Learning (style transfer model)
