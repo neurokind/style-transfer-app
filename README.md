@@ -18,6 +18,8 @@ A user queue feature is also implemented.
 
 ## Usage
 
+Run directly by streamlit:
+
 1. Clone the repository:
    ```
    git clone https://github.com/neurokind/style-transfer-app.git
@@ -32,7 +34,7 @@ A user queue feature is also implemented.
    ```
 4. Open the application in a web browser at `http://localhost:8501`.
 
-Or activate Docker image using the Dockerfile:
+Run from docker container:
 
 1. Run the following command from the app/ directory on your server to build the image:
    ```
