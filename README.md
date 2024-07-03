@@ -36,7 +36,7 @@ Run directly by streamlit:
 
 Run from docker container:
 
-1. Run the following command from the app/ directory on your server to build the image:
+1. Run the following command from the style-transfer-app/ directory on your server to build the image:
    ```
    docker build -t streamlit .
    ```
