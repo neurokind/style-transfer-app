@@ -137,7 +137,7 @@ def inference_edit_image(content_image, style_image, epochs):
     content_weight = 1 # alpha
     style_weight = 1e6 # beta
 
-    optimizer = optim.Adam([target], lr=0.4)
+    optimizer = optim.Adam([target], lr=0.3)
 
     """The style transfer:"""
 
@@ -163,11 +163,11 @@ def inference_edit_image(content_image, style_image, epochs):
         total_loss.backward()
         optimizer.step()
 
-        print('Epoch: ', i)
+        # print('Epoch: ', i)
 
 
-        if  i % 5 == 0:
-            print('Total loss: ', total_loss.item())
+        # if  i % 5 == 0:
+        #     print('Total loss: ', total_loss.item())
     
     target = Image.fromarray((im_convert(target) * 255).astype('uint8'))
     return target

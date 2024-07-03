@@ -51,9 +51,9 @@ class RequestQueue:
         return edited_image
     
     
-    # Пытаемся извлечь результат запроса из списка результатов
     def fetch_result(self, request_id):
-        """Method to get the result by request_id if result is in presence.
+        """Method to get and delete the result from 
+        results list by request_id if the result is in presence.
 
         Args:
             request_id (uuid4): unique id identifying a request.
@@ -61,10 +61,14 @@ class RequestQueue:
         Returns:
             dict or None: dictionary represents a request itself.
         """
-        for request in self.requests_results:
+        for i in range(0, len(self.requests_results)):
+            request = self.requests_results[i]
             if request["request_id"] == request_id:
-                return request
-    
+                request_to_return = request
+                self.requests_results.pop(i)
+
+                return request_to_return
+
         return None
     
     
